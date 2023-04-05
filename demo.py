@@ -53,11 +53,19 @@ def main(args):
     param_lst, roi_box_lst = tddfa(img, boxes)
 
     # Visualization and serialization
-    dense_flag = args.opt in ('2d_dense', '3d', 'depth', 'pncc', 'uv_tex', 'ply', 'obj')
+    dense_flag = args.opt in ('2d_dense', '3d', 'depth', 'pncc', 'uv_tex', 'ply', 'obj', 'obj_and_uv')
     old_suffix = get_suffix(args.img_fp)
     new_suffix = f'.{args.opt}' if args.opt in ('ply', 'obj') else '.png'
 
-    wfp = f'examples/results/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + new_suffix
+    result_dir = args.result_dir
+    if result_dir.endswith("/"):
+        result_dir = result_dir.rstrip('/')
+
+    wfp = f'{result_dir}/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + new_suffix
+
+    if args.opt == 'obj_and_uv':
+        wfp1 = f'{result_dir}/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + '.obj'
+        wfp2 = f'{result_dir}/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + '.png'
 
     ver_lst = tddfa.recon_vers(param_lst, roi_box_lst, dense_flag=dense_flag)
 
@@ -81,8 +89,8 @@ def main(args):
     elif args.opt == 'obj':
         ser_to_obj(img, ver_lst, tddfa.tri, height=img.shape[0], wfp=wfp)
     elif args.opt == 'obj_and_uv':
-        ser_to_obj(img, ver_lst, tddfa.tri, height=img.shape[0], wfp=wfp)
-        uv_tex(img, ver_lst, tddfa.tri, show_flag=args.show_flag, wfp=wfp, uv_h=1024, uv_w=1024)
+        ser_to_obj(img, ver_lst, tddfa.tri, height=img.shape[0], wfp=wfp1)
+        uv_tex(img, ver_lst, tddfa.tri, wfp=wfp2, uv_h=1024, uv_w=1024)
     else:
         raise ValueError(f'Unknown opt {args.opt}')
 
@@ -93,7 +101,9 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--img_fp', type=str, default='examples/inputs/trump_hillary.jpg')
     parser.add_argument('-m', '--mode', type=str, default='cpu', help='gpu or cpu mode')
     parser.add_argument('-o', '--opt', type=str, default='2d_sparse',
-                        choices=['2d_sparse', '2d_dense', '3d', 'depth', 'pncc', 'uv_tex', 'pose', 'ply', 'obj'])
+                        choices=['2d_sparse', '2d_dense', '3d', 'depth',
+                                 'pncc', 'uv_tex', 'pose', 'ply', 'obj', 'obj_and_uv'])
+    parser.add_argument('-rd', '--result_dir', type=str, default='examples/results', help='path to result directory')
     parser.add_argument('--show_flag', type=str2bool, default='true', help='whether to show the visualization result')
     parser.add_argument('--onnx', action='store_true', default=False)
 
