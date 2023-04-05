@@ -80,6 +80,9 @@ def main(args):
         ser_to_ply(ver_lst, tddfa.tri, height=img.shape[0], wfp=wfp)
     elif args.opt == 'obj':
         ser_to_obj(img, ver_lst, tddfa.tri, height=img.shape[0], wfp=wfp)
+    elif args.opt == 'obj_and_uv':
+        ser_to_obj(img, ver_lst, tddfa.tri, height=img.shape[0], wfp=wfp)
+        uv_tex(img, ver_lst, tddfa.tri, show_flag=args.show_flag, wfp=wfp, uv_h=1024, uv_w=1024)
     else:
         raise ValueError(f'Unknown opt {args.opt}')
 
