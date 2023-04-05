@@ -55,7 +55,7 @@ def main(args):
     # Visualization and serialization
     dense_flag = args.opt in ('2d_dense', '3d', 'depth', 'pncc', 'uv_tex', 'ply', 'obj')
     old_suffix = get_suffix(args.img_fp)
-    new_suffix = f'.{args.opt}' if args.opt in ('ply', 'obj') else '.jpg'
+    new_suffix = f'.{args.opt}' if args.opt in ('ply', 'obj') else '.png'
 
     wfp = f'examples/results/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + new_suffix
 
@@ -73,7 +73,7 @@ def main(args):
     elif args.opt == 'pncc':
         pncc(img, ver_lst, tddfa.tri, show_flag=args.show_flag, wfp=wfp, with_bg_flag=True)
     elif args.opt == 'uv_tex':
-        uv_tex(img, ver_lst, tddfa.tri, show_flag=args.show_flag, wfp=wfp)
+        uv_tex(img, ver_lst, tddfa.tri, show_flag=args.show_flag, wfp=wfp, uv_h=1024, uv_w=1024)
     elif args.opt == 'pose':
         viz_pose(img, param_lst, ver_lst, show_flag=args.show_flag, wfp=wfp)
     elif args.opt == 'ply':
