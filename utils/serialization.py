@@ -3,7 +3,9 @@
 __author__ = 'cleardusk'
 
 import numpy as np
-
+import os.path as osp
+import scipy.io as sio
+from utils.io import _load
 from .tddfa_util import _to_ctype
 from .functions import get_suffix
 
@@ -17,6 +19,26 @@ element face {}
 property list uchar int vertex_indices
 end_header
 """
+make_abs_path = lambda fn: osp.join(osp.dirname(osp.realpath(__file__)), fn)
+
+
+def load_uv_coords(fp):
+    C = sio.loadmat(fp)
+    uv_coords = C['UV'].copy(order='C').astype(np.float32)
+    return uv_coords
+
+
+def process_uv(uv_coords, uv_h=256, uv_w=256):
+    uv_coords[:, 0] = uv_coords[:, 0] * (uv_w - 1)
+    uv_coords[:, 1] = uv_coords[:, 1] * (uv_h - 1)
+    uv_coords[:, 1] = uv_h - uv_coords[:, 1] - 1
+    uv_coords = np.hstack((uv_coords, np.zeros((uv_coords.shape[0], 1), dtype=np.float32)))  # add z
+    return uv_coords
+
+
+g_uv_coords = load_uv_coords(make_abs_path('../configs/BFM_UV.mat'))
+indices = _load(make_abs_path('../configs/indices.npy'))  # todo: handle bfm_slim
+g_uv_coords = g_uv_coords[indices, :]
 
 
 def ser_to_ply_single(ver_lst, tri, height, wfp, reverse=True):
@@ -34,7 +56,7 @@ def ser_to_ply_single(ver_lst, tri, height, wfp, reverse=True):
             for i in range(n_vertex):
                 x, y, z = ver[:, i]
                 if reverse:
-                    f.write(f'{x:.2f} {height-y:.2f} {z:.2f}\n')
+                    f.write(f'{x:.2f} {height - y:.2f} {z:.2f}\n')
                 else:
                     f.write(f'{x:.2f} {y:.2f} {z:.2f}\n')
             for i in range(n_face):
@@ -93,7 +115,7 @@ def get_colors(img, ver):
 
 def ser_to_obj_single(img, ver_lst, tri, height, wfp):
     suffix = get_suffix(wfp)
-
+    uv_coords = g_uv_coords
     n_face = tri.shape[0]
     for i, ver in enumerate(ver_lst):
         colors = get_colors(img, ver)
@@ -107,6 +129,10 @@ def ser_to_obj_single(img, ver_lst, tri, height, wfp):
                 x, y, z = ver[:, i]
                 f.write(
                     f'v {x:.2f} {height - y:.2f} {z:.2f} {colors[i, 2]:.2f} {colors[i, 1]:.2f} {colors[i, 0]:.2f}\n')
+            for i in range(n_vertex):
+                x, y = uv_coords[:, i]
+                f.write(
+                    f'vt {x:.2f} {height - y:.2f} {z:.2f}\n')
             for i in range(n_face):
                 idx1, idx2, idx3 = tri[i]  # m x 3
                 f.write(f'f {idx3 + 1} {idx2 + 1} {idx1 + 1}\n')
@@ -119,7 +145,8 @@ def ser_to_obj_multiple(img, ver_lst, tri, height, wfp):
 
     if n_obj <= 0:
         return
-
+    uv_coords = g_uv_coords
+    print(uv_coords)
     n_vertex = ver_lst[0].shape[1]
     n_face = tri.shape[0]
 
@@ -127,6 +154,7 @@ def ser_to_obj_multiple(img, ver_lst, tri, height, wfp):
         for i in range(n_obj):
             ver = ver_lst[i]
             colors = get_colors(img, ver)
+            print(ver)
 
             for j in range(n_vertex):
                 x, y, z = ver[:, j]
@@ -134,10 +162,19 @@ def ser_to_obj_multiple(img, ver_lst, tri, height, wfp):
                     f'v {x:.2f} {height - y:.2f} {z:.2f} {colors[j, 2]:.2f} {colors[j, 1]:.2f} {colors[j, 0]:.2f}\n')
 
         for i in range(n_obj):
+            ver = ver_lst[i]
+
+            for j in range(n_vertex):
+                x, y = uv_coords[j]
+                f.write(
+                    f'vt {x:.6f} {y:.6f}\n')
+
+        for i in range(n_obj):
             offset = i * n_vertex
             for j in range(n_face):
                 idx1, idx2, idx3 = tri[j]  # m x 3
-                f.write(f'f {idx3 + 1 + offset} {idx2 + 1 + offset} {idx1 + 1 + offset}\n')
+                f.write(
+                    f'f {idx3 + 1 + offset}/{idx3 + 1 + offset} {idx2 + 1 + offset}/{idx2 + 1 + offset} {idx1 + 1 + offset}/{idx1 + 1 + offset}\n')
 
     print(f'Dump tp {wfp}')
 
