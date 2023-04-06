@@ -64,8 +64,8 @@ def main(args):
     wfp = f'{result_dir}/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + new_suffix
 
     if args.opt == 'obj_and_uv':
-        wfp1 = f'{result_dir}/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + '.obj'
-        wfp2 = f'{result_dir}/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + '.png'
+        wfp1 = f'{result_dir}/face' + '.obj'
+        wfp2 = f'{result_dir}/face' + '.png'
 
     ver_lst = tddfa.recon_vers(param_lst, roi_box_lst, dense_flag=dense_flag)
 
