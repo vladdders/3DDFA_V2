@@ -146,7 +146,7 @@ def ser_to_obj_multiple(img, ver_lst, tri, height, wfp):
     if n_obj <= 0:
         return
     uv_coords = g_uv_coords
-    print(uv_coords)
+    # print(uv_coords)
     n_vertex = ver_lst[0].shape[1]
     n_face = tri.shape[0]
 
@@ -154,7 +154,7 @@ def ser_to_obj_multiple(img, ver_lst, tri, height, wfp):
         for i in range(n_obj):
             ver = ver_lst[i]
             colors = get_colors(img, ver)
-            print(ver)
+            # print(ver)
 
             for j in range(n_vertex):
                 x, y, z = ver[:, j]
